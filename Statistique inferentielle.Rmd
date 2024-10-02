@@ -1,0 +1,161 @@
+---
+title: "Tests statistiques"
+author: "Abraham_KINNIN"
+date: "2024-09-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## ***Comprendre les tests statistiques***
+
+  Pour savoir si une différence observée entre deux variables	est uniquement due	a hasard	(variabilité	aléatoire)	ou si elle	reflète une «vraie»	différence,	il est nécessaire de s'appuyer	sur des règles précises et objectives, c'est le rôle des tests statistiques.
+
+Un test statistique est donc une procédure	qui permettra de choisir entre deux hypothèses à	partir de données observées,généralement issues	 d'un échantillon, tout en quantifiant le **risque	d'incertitude lié à la	décision	finale.**
+
+  Toute la démarche d'un test est construite sur	 le fait que	l'hypothèse  de référence (hypothèse	nulle, H0)	est  considérée comme  vraie.	 Il	 est donc important de bien définir cette	
+hypothèse de référence et d'en	 déduire ensuite	 son hypothèse alternative.
+
+## ___Soyons plus intuitif___
+
+D'apres notre generalité sur les tests statistiques, la demarche de la statistique inferentielle consiste:
+
+- à controler la validité d'une hypothese considereé comme vraie à priori, appeléé generalement hypothese nulle notée H0
+
+- à admettre une hypothese differente lorsque le contrôle se revele negatif, appelée hypothese alternative et notée H1
+
+il y a donc deux facons de se tromper:
+
+1 **La premiere facon de se tromper serait d'accepter la validité de l'hypothese vraie a priori(H0) alors qu'elle est fausse **
+
+2 **la deuxième facon de se tromper serait l'inverse; accepter l'hypothese alternative (H1) alors qu'elle est fausse**
+
+Prenons le cas d'un tribunal examinant la culpabilité d'un prevenu.  On sait que le prevenu beneficie d'un a priori favorable :  *Il est presumé innocent jusqu'a preuve du contraire(H0)*.  Sa culpabilité est a la charge de l'accusation (*ce dernier va vouloir a tout prix que le prevenu soit declaré coupable (H1) ainsi il lui faut apporter a la court la preuve de la culpabilité  du prevenu*)  Une fois la preuve apporter la court determinera ensuite si il faut la rejeter ou l'accepter.
+
+Les deux types d'erreurs dont on a parlé en haut qui se produiraient sont:
+
+1 **Declarer le presumé innocent alors qu'il est coupable** 
+
+2 **Declarer le presumé coupable alors qu'il est innocent** 
+
+l'erreur de premiere espèce (risque alpha) est celle qui rejette l'hypothese H0 alors qu'elle est vrai ***c'est le risque d'illusion***
+
+l'erreur de seconde espèce(risque betâ) est celle qui accepte l'hypothese H0 alors qu'elle est fausse ***c'est le risque de negligence***
+
+Maintenant je vous pose une question:  Si vous etiez dans le dilemme de ces deux risques lequel choisirez-vous courrir et pourquoi??
+
+Les statisticiens choissent de minimiser le risque d'illusion 5% ainsi dans tous les cas d'analyse, si le risque d'illusion depasse 5% alors on accepte plutot le risque de negligence.  Dans notre cas d'exemple si malgré les preuves apportées par l'accusation il y a toujours un doute raisonnable (risque d'illusion supperieur a 5%) alors on rejette la culpabilité du presumé(l'hypothese alternative(H1))
+
+
+
+## ***Les tests parametriques et les tests non parametriques***
+
+On utilise un test non parametrique pour valider une hypothese lorsque les conditions requise de validiité de ce test ne sont pas satisfait. En francais simple chaque test a ses conditions de validité, on ne fait pas les tests en l'air, c'est quand ces conditions ne sont pas respecter qu'on applique le test non parametrique qui correspond a notre cas.
+allons voir un petit exemple
+
+
+### **le test de correlation**
+
+1- Test parametrique(Pearson's)
+
+le test de correlation permet d'apporter plus de pertinence et de fiabilité aux coefficients de correlation Pearson's
+la synthase pour le test de correlation en rstudio est **cor.test()** en python la syntaxe depend du module(numpy, scipy.stats,statsmodels,pandas) que vous utliser:
+
+1- numpy "corrcoef()"
+
+2- scipy.stats "pearsonr()"
+
+3- pandas  "pearson.corr()"
+
+Comme	le paramètre étudié	est ici le coefficient de corrélation,	l'hypothèse	nulle	qui traduit	l'absence	de liaison entre les deux variables quantitatives, se définit par un coefficient de	corrélation	égal à	zéro:
+
+L'hypothèse	alternative se définit par un coefficient de corrélation	différent	de 0 en situation	bilatérale.	En situation unilatérale, soit la liaison est positive et le coefficient de corrélation est testé strictement supérieur à	zéro, soit la liaison	est négative et le coefficient	est	testé	strictement	inférieur	à	zéro
+
+
+## Pratice
+
+```{r}
+data(package = .packages(all.available = TRUE))
+library(GGally)
+
+View(happy)
+```
+
+
+### Un peu de statistiques descriptives
+
+```{r}
+str(happy)
+```
+
+```{r}
+table(happy$happy, happy$marital)
+```
+
+
+__On remarque aisement que les personnes les plus heureuses sont celles qui sont mariées et egalement moins de peersonnes separées sont heureuses__
+
+
+```{r}
+table(happy$happy, happy$sex)
+```
+
+__En moyenne la proportion des femmes heureuses est supperieur a celle des hommes__
+
+
+Voyons la moyenne du sex en fonction de la variable happy
+
+```{r}
+happy$age[is.na(happy$age)]<- mean(happy$age, na.rm = TRUE)# pour remplacer les valeurs manquzntes par la moyenne 
+summary(happy$age)
+```
+
+
+```{r}
+tapply(happy$age, happy$happy, mean)
+```
+
+__Nous avons là l'age moyenne pour chaque categorie de la variable happy. la moyenne observée au sein des trois categorie est sensiblement egale on peut là, faire un test statistique pour verifier si le hasard n'est pas la cause de ce resultat. Le test approprié pour cela est le test t de student on en reviendra plus tard__
+
+
+Ici ce qui nous interesse c'est de vous faire comprendre le test de correlation pour cela nous allons evaluer la correlation entre l'age et la probailité de poids(wtssall)
+
+```{r}
+plot(happy$age, happy$wtssall, xlab = "age", ylab = "wtssal", main = "correlation entre age et wtssall", col ='blue', pch = 19)
+```
+
+__On appercois pas de correlation lineaire entre les deux variables cela dit calculons la correlation pour voir ce qu'il en est__
+
+
+```{r}
+cor(happy$age, happy$wtssall)
+```
+
+Pour tester le resultat qu'on vient d'avoir 
+
+```{r}
+cor.test(happy$age,happy$wtssall, alternative = "two.sided",
+         method = "pearson",conf.level = 0.95)
+```
+
+___Avec R vous avez le resultat qui s'affiche et vous pouvez lire dans ce cas que la correlation obtenue est vraie et qu'elle n'est pas null___
+
+
+### Test non parametrique
+
+Nous avons deja expliqué pourquoi on fait recours aux tests non parametriques(quand les conditions de validitées ne sont pas reunies)
+
+```{r}
+cor(happy$age,happy$wtssall, method = "spearman")
+```
+
+```{r}
+cor.test(happy$age,happy$wtssall, method = "spearman",
+         alternative = "two.sided", conf.level = 0.95)
+```
+
+## Conclusion:
+
+  Les tests statistiques sont un puissant outils pour les analyses il est indispensable de les maitriser. les tests non parametriques s'appliquent souvent quand les conditionde validité du test même ne sont pas satisafait. Nous allons prochainement realiser un exemple utilisant python pour que les tests soient maitrisés des deux cotés
